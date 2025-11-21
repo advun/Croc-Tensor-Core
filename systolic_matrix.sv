@@ -26,19 +26,19 @@ module systolic_matrix import matrix_pkg::indata_size;(
     input wire push11,
     input wire pushedge,
     input wire push22,
-    input wire signed [indata_size-1:0] a1X, 
-    input wire signed [indata_size-1:0] a2X,
-    input wire signed [indata_size-1:0] bX1,
-    input wire signed [indata_size-1:0] bX2,
-    output wire signed [4*indata_size-1:0] c11,
-    output wire signed [4*indata_size-1:0] c12,
-    output wire signed [4*indata_size-1:0] c21,
-    output wire signed [4*indata_size-1:0] c22
+    input wire signed [7:0] a1X, 
+    input wire signed [7:0] a2X,
+    input wire signed [7:0] bX1,
+    input wire signed [7:0] bX2,
+    output wire signed [31:0] c11,
+    output wire signed [31:0] c12,
+    output wire signed [31:0] c21,
+    output wire signed [31:0] c22
     );
     
     // A * B = C, C = [c11, c12; c21, c22]
     
-    wire [indata_size-1:0] p11_aout, p11_bout, p21_aout, p12_bout;
+    wire [7:0] p11_aout, p11_bout, p21_aout, p12_bout;
     
     processing_element p11 (
     .clk(clk),
