@@ -21,8 +21,8 @@
 
 
 module matrix_multiplier_core import matrix_pkg::indata_size;(
-    input reg [31:0] cntrl,
-    input reg [31:0] fetch,
+    input reg [31:0] inA,
+    input reg [31:0] inB,
     input wire reset_n,
     input wire clk,
     output reg signed [4*indata_size-1:0] z11,
@@ -43,8 +43,8 @@ module matrix_multiplier_core import matrix_pkg::indata_size;(
     wire push11, pushedge, push22; // determines when to wipe a systolic array so you can add in new
     
     state_machine s0(
-    .cntrl(cntrl),
-    .fetch(fetch),
+    .inA(inA),
+    .inB(inB),
     .clk(clk),
     .reset(reset),
     .push11(push11),
