@@ -21,17 +21,28 @@
 
 
 module state_machine import matrix_pkg::indata_size;(
-    input wire [31:0] cntrl,
-    input wire [31:0] fetch,
+    input wire [31:0] inA,
+    input wire [31:0] inB,
     input wire reset,
     input wire clk,
     output wire push11,
     output wire pushedge,
     output wire push22,
-    output wire signed [indata_size-1:0] a1X, 
-    output wire signed [indata_size-1:0] a2X,
-    output wire signed [indata_size-1:0] bX1,
-    output wire signed [indata_size-1:0] bX2
+    output wire signed [7:0] a1X, 
+    output wire signed [7:0] a2X,
+    output wire signed [7:0] bX1,
+    output wire signed [7:0] bX2
     );
+
+    
+    reg [7:0] hold1a1X;
+    reg [7:0] hold1a2X;
+    reg [7:0] hold1bX1;
+    reg [7:0] hold1bX2;
+
+
+
+
+    
     
 endmodule
