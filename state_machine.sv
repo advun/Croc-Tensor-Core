@@ -30,7 +30,11 @@ module state_machine(
     output wire push11,
     output wire pushedge,
     output wire push22,
-    output wire valid,
+    output wire c11ready,
+    output wire c12ready,
+    output wire c21ready,
+    output wire c22ready,
+    output wire valid, //entire operation is done
     output wire signed [7:0] a1X, 
     output wire signed [7:0] a2X,
     output wire signed [7:0] bX1,
@@ -181,9 +185,10 @@ module state_machine(
 
         else begin
             case (state)
-                IDLE: begin                    
+                IDLE: begin
                     iter <= 0;
                     step <= 0;
+                end
 
                 RUN: begin
                     step <= step + 1;
