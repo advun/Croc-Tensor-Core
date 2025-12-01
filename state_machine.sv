@@ -23,7 +23,7 @@
 module state_machine(
     input wire [31:0] inA, 
     input wire [31:0] inB,
-    input wire [17:0] size,
+    input wire [16:0] size,
     input wire reset,
     input wire clk,
     input wire start,
