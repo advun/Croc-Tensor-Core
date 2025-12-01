@@ -47,7 +47,8 @@ module state_machine(
     logic [16:0] step; //17 bits to allow for max size matrix 32 bit outputs allows us to guarentee no overflow (131071x131071)
     //131071/2 (in 2x2 matrixes) = 65535.5.  Max (in 2x2 matrixes) is 65535.5x65535.5 = 4294901760 2x2 matrixes, thus 4294901760 iterations -> 32 bits
     logic [31:0] iter; 
-
+    logic shiftenable;
+    assign shiftenable = ((state == RUN)|(state == PUSH11)|(state == PUSHEDGE)|(state == PUSH22)); //only shift if in certain states
 
     //Shift Reg Logic
     always_ff @ (posedge clk) begin
@@ -58,52 +59,56 @@ module state_machine(
             foreach (hold_bX2[i]) hold_bX2[i] <= 8'd0;
             AnB <= 1'b1; //start with A true
         end
-        
-        else if (AnB) begin //If inA is being written in this cycle
-            //Bring in inA values to shift registers, shift older values through other regs as normal
-            hold_a1X[0] <= inA[31:24]; //11
-            hold_a1X[1] <= inA[23:16];//21
-            hold_a1X[2] <= hold_a1X[1];
-            
-            hold_a2X[0] <= inA[15:8];//12
-            hold_a2X[1] <= inA[7:0];//22
-            hold_a2X[2] <= hold_a2X[1];
-            hold_a2X[3] <= hold_a2X[2];
 
-            //Shift B values
-            hold_bX1[1] <= hold_bX1[0];
-
-            hold_bX2[1] <= hold_bX2[0];
-            hold_bX2[2] <= hold_bX2[1];
-            
-            AnB <= ~AnB;
-        end  
-
-        else if (~AnB) begin //If inB is being written in this cycle
-            //shift A values
-            hold_a1X[1] <= hold_a1X[0];
-            hold_a1X[2] <= hold_a1X[1];
-            
-            hold_a2X[1] <= hold_a1X[0];
-            hold_a2X[2] <= hold_a1X[1];
-            hold_a2X[3] <= hold_a1X[2];
-            
-            //Bring in inB values to shift registers, shift older values through other regs as normal
-            hold_bX1[0] <= inB[31:24]; //11
-            hold_bX1[1] <= inB[23:16];//21
-            
-            hold_bX2[0] <= inB[15:8];//12
-            hold_bX2[1] <= inB[7:0];//22
-            hold_bX2[2] <= hold_bX2[1];
-            
-            AnB <= ~AnB;
-        end 
-    end
+        else if (shiftenable) begin
+            if (AnB) begin //If inA is being written in this cycle
+                //Bring in inA values to shift registers, shift older values through other regs as normal
+                hold_a1X[0] <= inA[31:24]; //11
+                hold_a1X[1] <= inA[23:16];//21
+                hold_a1X[2] <= hold_a1X[1];
+                
+                hold_a2X[0] <= inA[15:8];//12
+                hold_a2X[1] <= inA[7:0];//22
+                hold_a2X[2] <= hold_a2X[1];
+                hold_a2X[3] <= hold_a2X[2];
     
+                //Shift B values
+                hold_bX1[1] <= hold_bX1[0];
+    
+                hold_bX2[1] <= hold_bX2[0];
+                hold_bX2[2] <= hold_bX2[1];
+                
+                AnB <= ~AnB;
+            end  
+    
+            else if (~AnB) begin //If inB is being written in this cycle
+                //shift A values
+                hold_a1X[1] <= hold_a1X[0];
+                hold_a1X[2] <= hold_a1X[1];
+                
+                hold_a2X[1] <= hold_a1X[0];
+                hold_a2X[2] <= hold_a1X[1];
+                hold_a2X[3] <= hold_a1X[2];
+                
+                //Bring in inB values to shift registers, shift older values through other regs as normal
+                hold_bX1[0] <= inB[31:24]; //11
+                hold_bX1[1] <= inB[23:16];//21
+                
+                hold_bX2[0] <= inB[15:8];//12
+                hold_bX2[1] <= inB[7:0];//22
+                hold_bX2[2] <= hold_bX2[1];
+                
+                AnB <= ~AnB;
+            end 
+        end
+    end
+
+    //========OUTPUTS FOR SHIFT REGS===========
     assign a1X = hold_a1X[2];
     assign a2X = hold_a2X[3];
     assign bX1 = hold_bX1[1];
     assign bX2 = hold_bX2[2];
+    //=========================================
     
     always_ff @(posedge clk) begin
         if (reset) begin
@@ -132,8 +137,9 @@ module state_machine(
         next_state = state;
         case (state)
             IDLE: begin
-                if (start)
+                if (start) begin
                     next_state = RUN;
+                end
             end
             
             RUN: begin
@@ -170,23 +176,16 @@ module state_machine(
         if (reset) begin
             iter <= 0;
             step <= 0;
+            shiftenable <= 0;
         end
 
         else begin
             case (state)
-                IDLE: begin
-                    //read in values
-                    hold_a1X[0] <= inA[31:24]; //11
-                    hold_a1X[1] <= inA[23:16];//21
-                    hold_a2X[0] <= inA[15:8];//12
-                    hold_a2X[1] <= inA[7:0];//22
-                    
+                IDLE: begin                    
                     iter <= 0;
                     step <= 0;
-                end
 
                 RUN: begin
-
                     step <= step + 1;
                 end
 
@@ -196,26 +195,24 @@ module state_machine(
                 end
 
                 PUSHEDGE: begin
-
-
                 end
 
                 PUSH22: begin
-
-                
                 end
 
                 DONE: begin
-                    
                 end
                 
             endcase
         end
     end
 
-    assign push11 = (state == PUSH11);
+
+    //========OUTPUTS FOR PUSHES===========
+    assign push11 = (state == PUSH11); //change to next_state if giving issues
     assign pushedge = (state == PUSHEDGE);
     assign push22 = (state == PUSH22);
     assign valid = (state == DONE);
+    //=====================================
     
 endmodule
