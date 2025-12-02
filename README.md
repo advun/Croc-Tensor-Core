@@ -6,6 +6,8 @@ To operate:
 Send 1 cycle start pulse, followed by 32 bits of A, then 32 bits of B, repeating in alternate clock cycles.
 Valid goes high when full output matrix is done.
 
+To provide data: split your matrix up into 2x2 matrixes, then put the values in each 32 bit register like below:
+
 A11 = [31:24]
 A12 = [23:16]
 A21 = [15:8]
