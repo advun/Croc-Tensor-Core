@@ -1,23 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 11/21/2025 01:04:33 AM
-// Design Name: 
-// Module Name: matrix_multiplier_core
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+
 
 
 module matrix_multiplier_core(
@@ -53,6 +35,7 @@ module matrix_multiplier_core(
     .size(size),
     .reset(reset),
     .clk(clk),
+    .valid(valid),
     .start(start),
     .push11(push11),
     .pushedge(pushedge),
@@ -113,16 +96,11 @@ module matrix_multiplier_core(
             c21ready <= 0;
             c22ready <= 0;
         end 
-        else begin
-            if (push11) begin
-                c11ready <= 1;
-            end
-            else begin //shift ready signal
-                c11ready <= 0;
-                c12ready <= c11ready;
-                c21ready <= c12ready;
-                c22ready <= c21ready;
-            end
+        else begin //shift ready signal
+            c11ready <= push11;
+            c12ready <= c11ready;
+            c21ready <= c12ready;
+            c22ready <= c21ready;
         end
     end
         

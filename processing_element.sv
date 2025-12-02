@@ -20,15 +20,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module processing_element import matrix_pkg::indata_size; (
+module processing_element(
     input wire clk,
     input wire reset,
     input wire push,
-    input wire signed [indata_size-1:0] in_a, 
-    input wire signed [indata_size-1:0] in_b,
-    output reg signed [4*indata_size-1:0] out_c,
-    output reg signed [indata_size-1:0] out_a, 
-    output reg signed [indata_size-1:0] out_b
+    input wire signed [7:0] in_a, 
+    input wire signed [7:0] in_b,
+    output reg signed [31:0] out_c,
+    output reg signed [7:0] out_a, 
+    output reg signed [7:0] out_b
     ); 
     
     always_ff @ (posedge clk) begin
@@ -46,14 +46,14 @@ module processing_element import matrix_pkg::indata_size; (
    
 endmodule
 
-module processing_element_rightedge import matrix_pkg::indata_size; (
+module processing_element_rightedge(
     input wire clk,
     input wire reset,
     input wire push,
-    input wire signed [indata_size-1:0] in_a, 
-    input wire signed [indata_size-1:0] in_b,
-    output reg signed [4*indata_size-1:0] out_c,
-    output reg signed [indata_size-1:0] out_b
+    input wire signed [7:0] in_a, 
+    input wire signed [7:0] in_b,
+    output reg signed [31:0] out_c,
+    output reg signed [7:0] out_b
     ); 
     
     always_ff @ (posedge clk) begin
@@ -70,14 +70,14 @@ module processing_element_rightedge import matrix_pkg::indata_size; (
 endmodule
 
 
-module processing_element_bottomedge import matrix_pkg::indata_size; (
+module processing_element_bottomedge(
     input wire clk,
     input wire reset,
     input wire push,
-    input wire signed [indata_size-1:0] in_a, 
-    input wire signed [indata_size-1:0] in_b,
-    output reg signed [4*indata_size-1:0] out_c,
-    output reg signed [indata_size-1:0] out_a 
+    input wire signed [7:0] in_a, 
+    input wire signed [7:0] in_b,
+    output reg signed [31:0] out_c,
+    output reg signed [7:0] out_a 
     ); 
     
     always_ff @ (posedge clk) begin
@@ -94,13 +94,13 @@ module processing_element_bottomedge import matrix_pkg::indata_size; (
 endmodule
 
 
-module processing_element_rightbottomcorner import matrix_pkg::indata_size; (
+module processing_element_rightbottomcorner (
     input wire clk,
     input wire reset,
     input wire push,
-    input wire signed [indata_size-1:0] in_a, 
-    input wire signed [indata_size-1:0] in_b,
-    output reg signed [4*indata_size-1:0] out_c
+    input wire signed [7:0] in_a, 
+    input wire signed [7:0] in_b,
+    output reg signed [31:0] out_c
     ); 
     
     always_ff @ (posedge clk) begin

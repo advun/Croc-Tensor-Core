@@ -1,23 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 11/21/2025 01:30:12 AM
-// Design Name: 
-// Module Name: state_machine
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+
 
 
 module state_machine(
@@ -30,7 +12,7 @@ module state_machine(
     output wire push11,
     output wire pushedge,
     output wire push22,
-    output wire valid, //entire operation is done
+    output reg valid, //entire operation is done
     output wire signed [7:0] a1X, 
     output wire signed [7:0] a2X,
     output wire signed [7:0] bX1,
@@ -48,8 +30,9 @@ module state_machine(
     //131071/2 (in 2x2 matrixes) = 65535.5.  Max (in 2x2 matrixes) is 65535.5x65535.5 = 4294901760 2x2 matrixes, thus 4294901760 iterations -> 32 bits
     logic [31:0] iter; //which 2x2 matrix it is on.
     logic shiftenable;
-    assign shiftenable = ((state == RUN)|(state == PUSH11)|(state == PUSHEDGE)|(state == PUSH22)); //only shift if in certain states
-
+    assign shiftenable = (state != IDLE); //only shift if in certain states
+    logic [2:0] holder;
+    
     //Shift Reg Logic
     always_ff @ (posedge clk) begin
         if (reset) begin
@@ -86,9 +69,9 @@ module state_machine(
                 hold_a1X[1] <= hold_a1X[0];
                 hold_a1X[2] <= hold_a1X[1];
                 
-                hold_a2X[1] <= hold_a1X[0];
-                hold_a2X[2] <= hold_a1X[1];
-                hold_a2X[3] <= hold_a1X[2];
+                hold_a2X[1] <= hold_a2X[0];
+                hold_a2X[2] <= hold_a2X[1];
+                hold_a2X[3] <= hold_a2X[2];
                 
                 //Bring in inB values to shift registers, shift older values through other regs as normal
                 hold_bX1[0] <= inB[31:24]; //11
@@ -97,9 +80,9 @@ module state_machine(
                 hold_bX2[0] <= inB[23:16];//12
                 hold_bX2[1] <= inB[7:0];//22
                 hold_bX2[2] <= hold_bX2[1];
-                
-                AnB <= ~AnB;
             end 
+            
+            AnB <= ~AnB;
         end
     end
 
@@ -123,10 +106,11 @@ module state_machine(
     typedef enum logic [2:0] {
         IDLE = 3'd0,
         RUN  = 3'd1,
-        PUSH11 = 3'd2,
-        PUSHEDGE = 3'd3,
-        PUSH22 = 3'd4,
-        DONE = 3'd5
+        HOLD = 3'd2,
+        PUSH11 = 3'd3,
+        PUSHEDGE = 3'd4,
+        PUSH22 = 3'd5,
+        DONE = 3'd6
     } state_t;
     
     state_t state, next_state;
@@ -138,12 +122,17 @@ module state_machine(
         case (state)
             IDLE: begin
                 if (start) begin
-                    next_state = RUN;
+                    next_state = HOLD;
                 end
             end
             
+            HOLD: begin
+               if (holder >= 4)// 5 clock cycles
+                next_state = RUN;
+            end
+            
             RUN: begin
-                if (step >= (size-3))
+                if (step >= (size-4)) //size - 3 clock cycles
                     next_state = PUSH11;
             end
 
@@ -156,7 +145,7 @@ module state_machine(
             end
 
             PUSH22: begin
-                if (iter <= (size/2)*(size/2)) //if iter is greater than/equal to the square of 1/2 the size, it's finished
+                if (iter >= (size/2)*(size/2)) //if iter is greater than/equal to the square of 1/2 the size, it's finished
                     next_state = DONE;
                 else
                     next_state = RUN;
@@ -176,7 +165,8 @@ module state_machine(
         if (reset) begin
             iter <= 0;
             step <= 0;
-            shiftenable <= 0;
+            valid <= 1'b0;
+            holder <= 0;
         end
 
         else begin
@@ -184,6 +174,11 @@ module state_machine(
                 IDLE: begin
                     iter <= 0;
                     step <= 0;
+                end
+                
+                HOLD: begin
+                valid <= 1'b0;
+                holder <= holder + 1;
                 end
 
                 RUN: begin
@@ -202,6 +197,7 @@ module state_machine(
                 end
 
                 DONE: begin
+                valid <= 1'b1;
                 end
                 
             endcase
@@ -210,10 +206,9 @@ module state_machine(
 
 
     //========OUTPUTS FOR PUSHES===========
-    assign push11 = (state == PUSH11); //change to next_state if giving issues
+    assign push11 = (state == PUSH11); //change to next_state if giving issues??
     assign pushedge = (state == PUSHEDGE);
     assign push22 = (state == PUSH22);
-    assign valid = (state == DONE);
     //=====================================
     
 endmodule
