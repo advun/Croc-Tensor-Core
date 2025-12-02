@@ -1,3 +1,4 @@
+//author:advun
 module state_machine(
     input wire [31:0] inA, 
     input wire [31:0] inB,
