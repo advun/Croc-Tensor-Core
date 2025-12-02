@@ -1,6 +1,6 @@
 //author:advun
 
-module matrix_multiplier_core_tb1();
+module matrix_multiplier_core_tb_multiple();
     
     // Test multiple matrix sizes
     localparam NUM_TESTS = 8;
