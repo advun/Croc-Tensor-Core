@@ -20,21 +20,26 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module matrix_multiplier_core import matrix_pkg::indata_size;(
+module matrix_multiplier_core(
     input reg [31:0] inA,
     input reg [31:0] inB,
+    input wire signed [16:0] size,
     input wire reset_n,
     input wire clk,
-    output reg signed [4*indata_size-1:0] z11,
-    output reg signed [4*indata_size-1:0] z12,
-    output reg signed [4*indata_size-1:0] z21,
-    output reg signed [4*indata_size-1:0] z22
+    input wire start,
+    output wire valid,
+    output reg c11ready,
+    output reg c12ready,
+    output reg c21ready,
+    output reg c22ready,
+    output reg signed [31:0] C11,
+    output reg signed [31:0] C12,
+    output reg signed [31:0] C21,
+    output reg signed [31:0] C22
     );
     
     
     wire reset = ~reset_n;
-    
-    wire [3:0] out; //determines when to save output of systolic to module output
     
     wire [7:0] a1X, a2X, bX1, bX2; //inputs of systolic array
     
@@ -45,8 +50,10 @@ module matrix_multiplier_core import matrix_pkg::indata_size;(
     state_machine s0(
     .inA(inA),
     .inB(inB),
-    .clk(clk),
+    .size(size),
     .reset(reset),
+    .clk(clk),
+    .start(start),
     .push11(push11),
     .pushedge(pushedge),
     .push22(push22),
@@ -55,8 +62,6 @@ module matrix_multiplier_core import matrix_pkg::indata_size;(
     .bX1(bX1),
     .bX2(bX2)
     );
-    
-    
     
     
     systolic_matrix s1(
@@ -75,18 +80,50 @@ module matrix_multiplier_core import matrix_pkg::indata_size;(
     .c22(c22)
     );
     
-    always_ff @(posedge clk) begin
+   //push logic
+    always @(posedge clk) begin
         if (reset) begin
-            z11 <= '0;
-            z12 <= '0;
-            z21 <= '0;
-            z22 <= '0;
-        end else begin
-            if (out[0]) z11 <= c11;
-            if (out[1]) z12 <= c12;
-            if (out[2]) z21 <= c21;
-            if (out[3]) z22 <= c22;
+            C11 <= 32'd0;
+            C12 <= 32'd0;
+            C21 <= 32'd0;
+            C22 <= 32'd0;
+        end 
+        
+        else begin
+            if (push11) begin
+                C11 <= c11;
+            end
+            
+            if (pushedge) begin
+                C12 <= c12;
+                C21 <= c21;
+            end
+            
+            if (push22) begin
+                C22 <= c22;
+            end
         end
-   end
+    end
+    
+    //save to memory logic
+    always @(posedge clk) begin
+        if (reset) begin
+            c11ready <= 0;
+            c12ready <= 0;
+            c21ready <= 0;
+            c22ready <= 0;
+        end 
+        else begin
+            if (push11) begin
+                c11ready <= 1;
+            end
+            else begin //shift ready signal
+                c11ready <= 0;
+                c12ready <= c11ready;
+                c21ready <= c12ready;
+                c22ready <= c21ready;
+            end
+        end
+    end
         
 endmodule
