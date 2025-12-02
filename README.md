@@ -1,6 +1,7 @@
 Tensor Core for the Croc SoC
 
 Takes in 32 bits in INT8 format per cycle, outputs in INT32
+
 To operate:
 Send 1 cycle start pulse, followed by 32 bits of A, then 32 bits of B, repeating in alternate clock cycles.
 A11 = [31:24]
