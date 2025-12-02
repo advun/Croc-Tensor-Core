@@ -4,6 +4,7 @@ Takes in 32 bits in INT8 format per cycle, outputs in INT32
 
 To operate:
 Send 1 cycle start pulse, followed by 32 bits of A, then 32 bits of B, repeating in alternate clock cycles.
+Valid goes high when full output matrix is done.
 
 A11 = [31:24]
 A12 = [23:16]
