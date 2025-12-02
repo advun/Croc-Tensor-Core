@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 11/21/2025 05:12:13 PM
+// Create Date: 12/01/2025 06:20:15 PM
 // Design Name: 
-// Module Name: systolic_matrix_tb
+// Module Name: SYSalttb
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,13 +20,18 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module systolic_matrix_tb(
+module SYSalttb(
 
     );
+    //++++++++++++++++++++++++++++++++++++
+    //USED FOR TESTING PUSHES, NOT WORKING RN BECAUSE I MOVED REGS FROM SYSTOLIC_MATRIX TO MATRIX_MULTIPLIER_CORE
+    //++++++++++++++++++++++++++++++++++++
+
+    
     
     reg clk, reset, push11, pushedge, push22;
     reg signed [7:0] a1X, a2X, bX1, bX2;
-    wire signed [31:0] c11, c12, c21, c22; //outputs of systolic array
+    wire signed [31:0] Oc11, Oc12, Oc21, Oc22; //outputs of systolic array
     
     systolic_matrix s1(
     .clk(clk),
@@ -38,10 +43,10 @@ module systolic_matrix_tb(
     .a2X(a2X),
     .bX1(bX1),
     .bX2(bX2),
-    .c11(c11),
-    .c12(c12),
-    .c21(c21),
-    .c22(c22)
+    .Oc11(Oc11),
+    .Oc12(Oc12),
+    .Oc21(Oc21),
+    .Oc22(Oc22)
     );
     
     initial clk = 1;
@@ -66,11 +71,33 @@ module systolic_matrix_tb(
     bX1 <= 9;
     bX2 <= 0;
     
+    #50; //new matrix
+    a1X <= 4;
+    a2X <= -4;
+    bX1 <= 1;
+    bX2 <= 1;
+    
+    //push11 <= 1;
+    
+    #50;
+    a1X <= 8;
+    a2X <= 2;
+    bX1 <= 5;
+    bX2 <= 2;
+    
+    //push11 <= 0;
+    //pushedge <= 1;
+    
     #50;
     a1X <= 0;
-    a2X <= -4;
+    a2X <= -7;
     bX1 <= 0;
-    bX2 <= 1;
+    bX2 <= -12;
+    
+    //pushedge <= 0;
+    //push22 <= 1;
+    
+    push11 <= 1;
     
     #50;
     a1X <= 0;
@@ -78,7 +105,27 @@ module systolic_matrix_tb(
     bX1 <= 0;
     bX2 <= 0;
     
+    //push22 <= 0;
+    
+    push11 <= 0;
+    pushedge <= 1;
+    
     #50;
+    a1X <= 0;
+    a2X <= 0;
+    bX1 <= 0;
+    bX2 <= 0;
+    
+    pushedge <= 0;
+    push22 <= 1;
+    
+    #50;
+    a1X <= 0;
+    a2X <= 0;
+    bX1 <= 0;
+    bX2 <= 0;
+    push22 <= 0;
+    
     #50;
     $finish;
     

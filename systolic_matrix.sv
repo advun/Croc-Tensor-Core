@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module systolic_matrix import matrix_pkg::indata_size;(
+module systolic_matrix(
     input wire clk,
     input wire reset,
     input wire push11,
@@ -79,7 +79,6 @@ module systolic_matrix import matrix_pkg::indata_size;(
     .in_b(p12_bout),
     .out_c(c22)
     );
-    
     
     
     

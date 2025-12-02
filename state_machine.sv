@@ -23,17 +23,13 @@
 module state_machine(
     input wire [31:0] inA, 
     input wire [31:0] inB,
-    input wire [16:0] size,
+    input wire signed [16:0] size,
     input wire reset,
     input wire clk,
     input wire start,
     output wire push11,
     output wire pushedge,
     output wire push22,
-    output wire c11ready,
-    output wire c12ready,
-    output wire c21ready,
-    output wire c22ready,
     output wire valid, //entire operation is done
     output wire signed [7:0] a1X, 
     output wire signed [7:0] a2X,
@@ -48,9 +44,9 @@ module state_machine(
     reg [7:0] hold_bX1 [1:0];  
     reg [7:0] hold_bX2 [2:0];   
     logic AnB;  //True if A, False if B
-    logic [16:0] step; //17 bits to allow for max size matrix 32 bit outputs allows us to guarentee no overflow (131071x131071)
+    logic [16:0] step; //which partial product. 17 bits to allow for max size matrix 32 bit outputs allows us to guarentee no overflow (131071x131071)
     //131071/2 (in 2x2 matrixes) = 65535.5.  Max (in 2x2 matrixes) is 65535.5x65535.5 = 4294901760 2x2 matrixes, thus 4294901760 iterations -> 32 bits
-    logic [31:0] iter; 
+    logic [31:0] iter; //which 2x2 matrix it is on.
     logic shiftenable;
     assign shiftenable = ((state == RUN)|(state == PUSH11)|(state == PUSHEDGE)|(state == PUSH22)); //only shift if in certain states
 
@@ -68,10 +64,10 @@ module state_machine(
             if (AnB) begin //If inA is being written in this cycle
                 //Bring in inA values to shift registers, shift older values through other regs as normal
                 hold_a1X[0] <= inA[31:24]; //11
-                hold_a1X[1] <= inA[23:16];//21
+                hold_a1X[1] <= inA[23:16];//12
                 hold_a1X[2] <= hold_a1X[1];
                 
-                hold_a2X[0] <= inA[15:8];//12
+                hold_a2X[0] <= inA[15:8];//21
                 hold_a2X[1] <= inA[7:0];//22
                 hold_a2X[2] <= hold_a2X[1];
                 hold_a2X[3] <= hold_a2X[2];
@@ -96,9 +92,9 @@ module state_machine(
                 
                 //Bring in inB values to shift registers, shift older values through other regs as normal
                 hold_bX1[0] <= inB[31:24]; //11
-                hold_bX1[1] <= inB[23:16];//21
+                hold_bX1[1] <= inB[15:8];//21
                 
-                hold_bX2[0] <= inB[15:8];//12
+                hold_bX2[0] <= inB[23:16];//12
                 hold_bX2[1] <= inB[7:0];//22
                 hold_bX2[2] <= hold_bX2[1];
                 
