@@ -1,5 +1,4 @@
-`timescale 1ns / 1ps
-
+//author:advun
 module matrix_multiplier_core_tb();
     
     // Parameterizable matrix size
