@@ -318,7 +318,6 @@ module matrix_multiplier_core_tb_multiple();
             $display("");
             $display("   ALL TESTS PASSED! ");
             
-            
         end else begin
             $display("   SOME TESTS FAILED :(((((");
             $display("   Failed: %0d test(s)", NUM_TESTS - total_tests_passed);
