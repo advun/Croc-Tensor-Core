@@ -58,7 +58,6 @@ module state_machine(
                 hold_bX2[1] <= hold_bX2[0];
                 hold_bX2[2] <= hold_bX2[1];
                 
-                AnB <= ~AnB;
             end  
     
             else if (~AnB) begin //If inB is being written in this cycle

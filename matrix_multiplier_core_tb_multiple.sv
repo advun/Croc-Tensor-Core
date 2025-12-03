@@ -160,10 +160,10 @@ module matrix_multiplier_core_tb_multiple();
                 if ($random % 2) B[i][7:0]   = -$signed(B[i][7:0]);
             end
             
-            $display("\n#########################################");
-            $display("# TEST %0d: Matrix Size %0dx%0d (%0dx%0d blocks)", 
+            $display("=============================================");
+            $display("TEST %0d: Matrix Size %0dx%0d (%0dx%0d blocks)", 
                      total_tests_run + 1, SIZER, SIZER, BLOCK_DIM, BLOCK_DIM);
-            $display("#########################################");
+            $display("=============================================");
             
             // Display all input blocks
             $display("\nInput Blocks:");
@@ -227,9 +227,9 @@ module matrix_multiplier_core_tb_multiple();
             // Test result
             if (blocks_passed == NUM_BLOCKS) begin
                 total_tests_passed++;
-                $display("\n? TEST PASSED: %0d/%0d blocks correct", blocks_passed, NUM_BLOCKS);
+                $display("\n TEST PASSED: %0d/%0d blocks correct", blocks_passed, NUM_BLOCKS);
             end else begin
-                $display("\n? TEST FAILED: %0d/%0d blocks correct", blocks_passed, NUM_BLOCKS);
+                $display("\n TEST FAILED: %0d/%0d blocks correct", blocks_passed, NUM_BLOCKS);
             end
             
             // Timing summary

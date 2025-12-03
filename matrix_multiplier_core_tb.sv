@@ -2,7 +2,7 @@
 module matrix_multiplier_core_tb();
     
     // Parameterizable matrix size
-    localparam SIZER = 8;  // Can be changed to any size
+    localparam SIZER = 4;  // Can be changed to any size
     localparam NUM_BLOCKS = (SIZER/2) * (SIZER/2);
     localparam BLOCK_DIM = SIZER/2;  // Number of 2x2 blocks per dimension
     
