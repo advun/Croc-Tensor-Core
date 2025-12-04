@@ -128,7 +128,9 @@ module state_machine(
             end
             
             RUN: begin
-                if (step >= (size-4)) //size - 3 clock cycles
+                if (size == 2)
+                    next_state = PUSH11;
+                else if (step >= (size-4)) //size - 3 clock cycles
                     next_state = PUSH11;
             end
 
