@@ -123,14 +123,16 @@ module state_machine(
             end
             
             HOLD: begin
-               if (holder >= 4)// 5 clock cycles
+                if (size == 2) //only needs 1 cycle to load in
+                    next_state = PUSH11;
+               else if (holder >= 4)// 5 clock cycles
                 next_state = RUN;
             end
             
             RUN: begin
-                if (size == 2)
+                if (size == 2) //only needs to run for 1 cycle before beginning push
                     next_state = PUSH11;
-                else if (step >= (size-4)) //size - 3 clock cycles
+               else if (step >= (size-4)) //size - 3 clock cycles
                     next_state = PUSH11;
             end
 
@@ -172,6 +174,7 @@ module state_machine(
                 IDLE: begin
                     iter <= 0;
                     step <= 0;
+                    holder <= 0;
                 end
                 
                 HOLD: begin
