@@ -1,8 +1,11 @@
 //author:advun
-module matrix_multiplier_core_tb();
+module matrix_multiplier_core_tb_spaced();
+
+    //this TB is testing for A. running one matrix, allowing it to finish then running another
+    // and B. not having the inputs be held for multiple clock ticks
     
     // Parameterizable matrix size
-    localparam SIZER = 8;  // Can be changed to any size
+    localparam SIZER = 2;  // Can be changed to any size
     localparam NUM_BLOCKS = (SIZER/2) * (SIZER/2);
     localparam BLOCK_DIM = SIZER/2;  // Number of 2x2 blocks per dimension
     
@@ -32,6 +35,11 @@ module matrix_multiplier_core_tb();
     time first_output_time = 0;
     time last_output_time = 0;
     int cycle_count = 0;
+    
+    // Test tracking
+    int current_test = 0;
+    int test1_blocks_passed = 0;
+    int test2_blocks_passed = 0;
     
     // Helper functions to access matrices as 2D arrays
     function int get_index(int i, int j, int dim);
@@ -75,8 +83,8 @@ module matrix_multiplier_core_tb();
             if (pass) blocks_passed++;
             
             $display("\n========================================");
-            $display("BLOCK C[%0d][%0d]: %s (Time: %0t ns, Cycles: %0d)", 
-                     i, j, pass ? "PASS" : "FAIL", 
+            $display("TEST %0d - BLOCK C[%0d][%0d]: %s (Time: %0t ns, Cycles: %0d)", 
+                     current_test, i, j, pass ? "PASS" : "FAIL", 
                      $time - start_time, (($time - start_time) / 50));
             $display("Expected: [%8d %8d; %8d %8d]", 
                      $signed(expected_results[idx + 0]), $signed(expected_results[idx + 1]),
@@ -141,7 +149,7 @@ module matrix_multiplier_core_tb();
         start = 0;
         
         $display("=========================================");
-        $display("Matrix Multiplier Core Testbench");
+        $display("Matrix Multiplier Core Testbench - 2 Tests");
         $display("SIZER = %0d, Block Dimension = %0dx%0d, Total Blocks = %0d\n", 
                  SIZER, BLOCK_DIM, BLOCK_DIM, NUM_BLOCKS);
         
@@ -164,8 +172,19 @@ module matrix_multiplier_core_tb();
             for (int j = 0; j < BLOCK_DIM; j++)
                 compute_expected_block(i, j);
         
-        // Run test
+        // Reset
         #50 reset_n = 1;
+        
+        //===========================================
+        // TEST 1: First matrix multiplication
+        //===========================================
+        $display("==========================================");
+        $display("# STARTING TEST 1");
+        $display("==========================================");
+        current_test = 1;
+        blocks_checked = 0;
+        blocks_passed = 0;
+        
         #50 start = 1;
         #50 start = 0;
         
@@ -177,47 +196,94 @@ module matrix_multiplier_core_tb();
                 
                 // Stream the row of A and column of B
                 for (int k = 0; k < BLOCK_DIM; k++) begin
-                    inA = A[get_index(i, k, BLOCK_DIM)]; #50;
-                    inB = B[get_index(k, j, BLOCK_DIM)]; #50;
+                    inA = A[get_index(i, k, BLOCK_DIM)]; 
+                    #50;
+                    inA = 32'hXXXXXXXX;
+                    
+                    inB = B[get_index(k, j, BLOCK_DIM)]; 
+                    #50;
+                    inB = 32'hXXXXXXXX;
                 end
             end
         end
         
-        // Wait for completion with timeout scaled to matrix size
-        wait(blocks_checked == NUM_BLOCKS || $time > (50000 + NUM_BLOCKS * 1000));
+        // Wait for completion
+        wait(blocks_checked == NUM_BLOCKS || $time > 50000);
+        wait(valid);
+        test1_blocks_passed = blocks_passed;
         #500;
         
-        // Summary
-        $display("\n=========================================");
-        $display("TEST SUMMARY");
-        $display("=========================================");
-        $display("Matrix Size: %0dx%0d (%0dx%0d blocks)", SIZER, SIZER, BLOCK_DIM, BLOCK_DIM);
-        $display("Checked: %0d/%0d | Passed: %0d | Failed: %0d", 
-                 blocks_checked, NUM_BLOCKS, blocks_passed, NUM_BLOCKS - blocks_passed);
-        $display("Valid: %b | Queue remaining: %0d", valid, output_queue_i.size());
-        $display("");
+        $display("\n-----------------------------------------");
+        $display("TEST 1 SUMMARY");
+        $display("-----------------------------------------");
+        $display("Blocks Passed: %0d/%0d", test1_blocks_passed, NUM_BLOCKS);
+        if (test1_blocks_passed == NUM_BLOCKS)
+            $display("Result: PASS");
+        else
+            $display("Result: FAIL");
+        $display("-----------------------------------------\n");
         
-        if (first_output_time > 0) begin
-            $display("TIMING ANALYSIS:");
-            $display("  Start time: %0t ns", start_time);
-            $display("  First output: %0t ns (latency: %0t ns, %0d cycles)", 
-                     first_output_time, first_output_time - start_time, 
-                     (first_output_time - start_time) / 50);
-            $display("  Last output: %0t ns (total time: %0t ns, %0d cycles)", 
-                     last_output_time, last_output_time - start_time,
-                     (last_output_time - start_time) / 50);
-            $display("  Throughput: %0.2f blocks/cycle", 
-                     real'(NUM_BLOCKS) / real'((last_output_time - start_time) / 50));
-            $display("");
+        //===========================================
+        // TEST 2: Second matrix multiplication (same data)
+        //===========================================
+        $display("==========================================");
+        $display("STARTING TEST 2 (SAME MATRICES)");
+        $display("==========================================");
+        current_test = 2;
+        blocks_checked = 0;
+        blocks_passed = 0;
+        
+        #50 start = 1;
+        #50 start = 0;
+        
+        // Stream the SAME inputs again
+        for (int i = 0; i < BLOCK_DIM; i++) begin
+            for (int j = 0; j < BLOCK_DIM; j++) begin
+                output_queue_i.push_back(i);
+                output_queue_j.push_back(j);
+                
+                // Stream the row of A and column of B
+                for (int k = 0; k < BLOCK_DIM; k++) begin
+                    inA = A[get_index(i, k, BLOCK_DIM)]; 
+                    #50;
+                    inA = 32'hXXXXXXXX;
+                    
+                    inB = B[get_index(k, j, BLOCK_DIM)]; 
+                    #50;
+                    inB = 32'hXXXXXXXX;
+                end
+            end
         end
         
-        if (blocks_passed == NUM_BLOCKS) begin
-            $display("ALL TESTS PASSED! :^)");
-            end
-        else if (output_queue_i.size() > 0)
-            $display("INCOMPLETE - Some outputs never appeared!");
+        // Wait for completion
+        wait(blocks_checked == NUM_BLOCKS || $time > 100000);
+        wait(valid);
+        test2_blocks_passed = blocks_passed;
+        #500;
+        
+        $display("\n-----------------------------------------");
+        $display("TEST 2 SUMMARY");
+        $display("-----------------------------------------");
+        $display("Blocks Passed: %0d/%0d", test2_blocks_passed, NUM_BLOCKS);
+        if (test2_blocks_passed == NUM_BLOCKS)
+            $display("Result: PASS");
         else
-            $display("TESTS FAILED!");
+            $display("Result: FAIL");
+        $display("-----------------------------------------\n");
+        
+        // Overall summary
+        $display("\n=========================================");
+        $display("OVERALL TEST SUMMARY");
+        $display("=========================================");
+        $display("Test 1: %0d/%0d blocks passed", test1_blocks_passed, NUM_BLOCKS);
+        $display("Test 2: %0d/%0d blocks passed", test2_blocks_passed, NUM_BLOCKS);
+        $display("Total: %0d/%0d blocks passed", test1_blocks_passed + test2_blocks_passed, NUM_BLOCKS * 2);
+        $display("");
+        
+        if (test1_blocks_passed == NUM_BLOCKS && test2_blocks_passed == NUM_BLOCKS)
+            $display("ALL TESTS PASSED! :^)");
+        else
+            $display("SOME TESTS FAILED!");
         $display("=========================================");
         
         $finish;

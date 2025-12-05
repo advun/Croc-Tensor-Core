@@ -1,8 +1,8 @@
 //author:advun
 
 module matrix_multiplier_core(
-    input reg [31:0] inA,
-    input reg [31:0] inB,
+    input wire [31:0] inA,
+    input wire [31:0] inB,
     input wire signed [16:0] size,
     input wire reset_n,
     input wire clk,
@@ -38,6 +38,7 @@ module matrix_multiplier_core(
     .push11(push11),
     .pushedge(pushedge),
     .push22(push22),
+    .enable(enable),
     .a1X(a1X), 
     .a2X(a2X),
     .bX1(bX1),
@@ -51,6 +52,8 @@ module matrix_multiplier_core(
     .push11(push11),
     .pushedge(pushedge),
     .push22(push22),
+    .start(start),
+    .enable(enable),
     .a1X(a1X), 
     .a2X(a2X),
     .bX1(bX1),

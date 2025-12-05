@@ -3,8 +3,8 @@
 module matrix_multiplier_core_tb_multiple();
     
     // Test multiple matrix sizes
-    localparam NUM_TESTS = 8;
-    localparam int TEST_SIZES [NUM_TESTS] = '{4, 6, 8, 10, 12, 14, 16, 20};
+    localparam NUM_TESTS = 16;
+    localparam int TEST_SIZES [NUM_TESTS] = '{2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 40, 86};
     
     reg [31:0] inA, inB;
     reg [16:0] size;

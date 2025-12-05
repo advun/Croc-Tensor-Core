@@ -10,6 +10,7 @@ module state_machine(
     output wire pushedge,
     output wire push22,
     output reg valid, //entire operation is done
+    output wire enable, //is the systolic on?
     output wire signed [7:0] a1X, 
     output wire signed [7:0] a2X,
     output wire signed [7:0] bX1,
@@ -26,13 +27,15 @@ module state_machine(
     logic [16:0] step; //which partial product. 17 bits to allow for max size matrix 32 bit outputs allows us to guarentee no overflow (131071x131071)
     //131071/2 (in 2x2 matrixes) = 65535.5.  Max (in 2x2 matrixes) is 65535.5x65535.5 = 4294901760 2x2 matrixes, thus 4294901760 iterations -> 32 bits
     logic [31:0] iter; //which 2x2 matrix it is on.
-    logic shiftenable;
-    assign shiftenable = (state != IDLE); //only shift if in certain states
+    wire shiftenable;
+    assign shiftenable = (state != IDLE)&(state != DONE); //only shift if in certain states
     logic [2:0] holder;
+    assign enable = (state != IDLE) & (state != DONE); //don't run systolic when not running
+    
     
     //Shift Reg Logic
     always_ff @ (posedge clk) begin
-        if (reset) begin
+        if (reset | (next_state == DONE)) begin //fill shifters w/0 at end of operation to prevent systolic arrays from acting 
             foreach (hold_a1X[i]) hold_a1X[i] <= 8'd0;
             foreach (hold_a2X[i]) hold_a2X[i] <= 8'd0;
             foreach (hold_bX1[i]) hold_bX1[i] <= 8'd0;
@@ -123,16 +126,14 @@ module state_machine(
             end
             
             HOLD: begin
-                if (size == 2) //only needs 1 cycle to load in
-                    next_state = PUSH11;
-               else if (holder >= 4)// 5 clock cycles
+            if (holder >= 4)// 1 cycle for shiftenable, 4 cycles for intializing systolic array (only done at beginning)
                 next_state = RUN;
+            else if (size == 2 && holder >= 3) //only needs to run for 3 cycle before beginning push
+                    next_state = PUSH11;
             end
             
             RUN: begin
-                if (size == 2) //only needs to run for 1 cycle before beginning push
-                    next_state = PUSH11;
-               else if (step >= (size-4)) //size - 3 clock cycles
+            if (step >= (size-4)) //size - 3 clock cycles (for all after first set of input matrixes)
                     next_state = PUSH11;
             end
 
@@ -172,14 +173,11 @@ module state_machine(
         else begin
             case (state)
                 IDLE: begin
-                    iter <= 0;
-                    step <= 0;
-                    holder <= 0;
                 end
                 
                 HOLD: begin
-                valid <= 1'b0;
                 holder <= holder + 1;
+                valid <= 1'b0; //started, so no longer valid
                 end
 
                 RUN: begin
@@ -198,7 +196,10 @@ module state_machine(
                 end
 
                 DONE: begin
-                valid <= 1'b1;
+                valid <= 1'b1; //output is finished and valid
+                iter <= 0; //set everything to 0 for next calc
+                step <= 0; //set everything to 0 for next calc
+                holder <= 0; //set everything to 0 for next calc
                 end
                 
             endcase
