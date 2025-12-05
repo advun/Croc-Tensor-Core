@@ -3,6 +3,8 @@ module processing_element(
     input wire clk,
     input wire reset,
     input wire push,
+    input wire start,
+    input wire enable,
     input wire signed [7:0] in_a, 
     input wire signed [7:0] in_b,
     output reg signed [31:0] out_c,
@@ -11,12 +13,12 @@ module processing_element(
     ); 
     
     always_ff @ (posedge clk) begin
-        if (reset) begin
+        if (reset|start) begin
         out_a <= '0;
         out_b <= '0;
         out_c <= '0;
         end
-        else begin
+        else if (enable) begin
         out_c <= (push ? 0 : out_c) + in_a*in_b;
         out_a <= in_a;
         out_b <= in_b;
@@ -29,6 +31,8 @@ module processing_element_rightedge(
     input wire clk,
     input wire reset,
     input wire push,
+    input wire start,
+    input wire enable,
     input wire signed [7:0] in_a, 
     input wire signed [7:0] in_b,
     output reg signed [31:0] out_c,
@@ -36,11 +40,11 @@ module processing_element_rightedge(
     ); 
     
     always_ff @ (posedge clk) begin
-        if (reset) begin
+        if (reset|start) begin
         out_b <= '0;
         out_c <= '0;
         end
-        else begin
+        else if (enable) begin
         out_c <= (push ? 0 : out_c) + in_a*in_b;
         out_b <= in_b;
         end
@@ -53,6 +57,8 @@ module processing_element_bottomedge(
     input wire clk,
     input wire reset,
     input wire push,
+    input wire start,
+    input wire enable,
     input wire signed [7:0] in_a, 
     input wire signed [7:0] in_b,
     output reg signed [31:0] out_c,
@@ -60,11 +66,11 @@ module processing_element_bottomedge(
     ); 
     
     always_ff @ (posedge clk) begin
-        if (reset) begin
+        if (reset|start) begin
         out_a <= '0;
         out_c <= '0;
         end
-        else begin
+        else if (enable) begin
         out_c <= (push ? 0 : out_c) + in_a*in_b;
         out_a <= in_a;
         end
@@ -77,16 +83,18 @@ module processing_element_rightbottomcorner (
     input wire clk,
     input wire reset,
     input wire push,
+    input wire start,
+    input wire enable,
     input wire signed [7:0] in_a, 
     input wire signed [7:0] in_b,
     output reg signed [31:0] out_c
     ); 
     
     always_ff @ (posedge clk) begin
-        if (reset) begin
+        if (reset|start) begin
         out_c <= '0;
         end
-        else begin
+        else if (enable) begin
         out_c <= (push ? 0 : out_c) + in_a*in_b;
         end
     end
