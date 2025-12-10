@@ -20,6 +20,7 @@ module matrix_multiplier_core(
     
     
     wire reset = ~reset_n;
+    wire enable;
     
     wire [7:0] a1X, a2X, bX1, bX2; //inputs of systolic array
     
