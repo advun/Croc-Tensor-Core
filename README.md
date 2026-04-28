@@ -1,11 +1,25 @@
 # Tensor Core for the Croc SoC
 
 ## Overview
-This is a Tensor Core, developed as a coprocesser for the [Croc SoC](https://github.com/pulp-platform/croc) developed by ETH Zurich and the University of Bologna.   It consists of 4 procesing elements performing 8 MAC operations in parallel every cycle on INT8 outputting in INT32, allowing for 640,000,000 operations per second at 80 MHz. For reference: GPT-2 Small needs an average of 248 million ops per token, so we can generate 2.58 tokens per second.  This hardware allows for a 9.58x speedup over calculation in software, a value which would increase the larger the Systolic Array at the core is.  Our size was constrained by needing to tape out with other projects on the same chip, but we have made the design to be easily expandable.  The chip was taped out during May 2026, and has yet to be recieved back from the fabrication lab.
+This is a Tensor Core, developed as a coprocesser for the [Croc SoC](https://github.com/pulp-platform/croc) developed by ETH Zurich and the University of Bologna.   It consists of 4 procesing elements performing 8 MAC operations in parallel every cycle on INT8 outputting in INT32, allowing for 640,000,000 operations per second at 80 MHz. For reference: GPT-2 Small needs an average of 248 million ops per token, so we can generate 2.58 tokens per second.  This hardware allows for a 9.58x speedup over calculation in software, a value which would increase the larger the Systolic Array at the core is.  Our size was constrained by needing to tape out with other projects on the same chip, but we have made the design to be easily expandable.  The chip was taped out during May 2026, and has yet to be recieved back from the fabrication lab.  The overall structure of the design can be seen below.
+<div align="center">
+<img src="https://github.com/advun/Croc-Tensor-Core/blob/main/img/Matrix%20Multiplier%20Core.png" width="400">
+</div>
 
-In order to implement larger matrixes then 2x2 (the size of our systolic array), we used Matrix tiling, which allows us to break up arbitrary sized matrixes into 2x2 "tiles", and use those tiles to compute full matrixes.  A 1024x1024 matrix multiplication was demonstrated using this method in 268 million cycles (3.35 seconds).  
+In order to implement larger matrixes then 2x2 (the size of our systolic array), we used Matrix tiling, which allows us to break up arbitrary sized matrixes into 2x2 "tiles", and use those tiles to compute full matrixes. A 1024x1024 matrix multiplication was demonstrated using this method in 268 million cycles (3.35 seconds).  
 
 ## Visualization
+This is a visualization showing how the elements of a matrix move through the systolic array at the core of this design.  Each box is a "processing element" that performs the MAC operation. Each cycle, the processing element takes in the value from above and from the left, multiplies them and accumulates their value, and then passes the above value down, and the left value right.
+
+<div align="center">
+<img src="https://github.com/advun/Croc-Tensor-Core/blob/main/img/Systolic.gif" width="350">
+</div>
+
+
+Below is what each processing element looks like in hardware.
+<div align="center">
+<img src="https://github.com/advun/Croc-Tensor-Core/blob/main/img/Processing%20Element.png" width="350">
+</div>
 
 
 ## Operation
