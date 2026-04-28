@@ -1,8 +1,14 @@
-Tensor Core for the Croc SoC
+#Tensor Core for the Croc SoC
 
-Takes in 32 bits in INT8 format per cycle, outputs in INT32
+##Overview
+This is a Tensor Core, developed as a coprocesser for the [Croc SoC](https://github.com/pulp-platform/croc) developed by ETH Zurich and the University of Bologna.   It consists of 4 procesing elements performing 8 MAC operations in parallel every cycle on INT8 outputting in INT32, allowing for 640,000,000 operations per second at 80 MHz. For reference: GPT-2 Small needs an average of 248 million ops per token, so we can generate 2.58 tokens per second.  This hardware allows for a 9.58x speedup over calculation in software, a value which would increase the larger the Systolic Array at the core is.  Our size was constrained by needing to tape out with other projects on the same chip, but we have made the design to be easily expandable.  The chip was taped out during May 2026, and has yet to be recieved back from the fabrication lab.
 
-To operate:
+In order to implement larger matrixes then 2x2 (the size of our systolic array), we used Matrix tiling, which allows us to break up arbitrary sized matrixes into 2x2 "tiles", and use those tiles to compute full matrixes.  A 1024x1024 matrix multiplication was demonstrated using this method in 268 million cycles (3.35 seconds).  
+
+##Visualization
+
+
+##Operation
 Send 1 cycle start pulse, followed by 32 bits of A, then 32 bits of B, repeating in alternate clock cycles.
 Valid goes high when full output matrix is done.
 
